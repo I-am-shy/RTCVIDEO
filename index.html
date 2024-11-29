@@ -44,9 +44,11 @@
     }
 
     h4 {
+      width: 100%;
       font-size: 1.2em;
       margin: 10px 0;
       color: #6a6a6a;
+      text-align: start;
     }
 
     #local-video,
@@ -132,11 +134,11 @@
   
   <div class="container">
     <div class="video-wrapper">
-      <h4>本地视频</h4>
+      <h4 id="local-video-context">本地视频</h4>
       <div id="local-video"></div>
     </div>
     <div class="video-wrapper">
-      <h4>远程视频</h4>
+      <h4 id="remote-video-context">远程视频</h4>
       <div id="remote-video"></div>
     </div>
   </div>
@@ -161,6 +163,13 @@
 
       zg.on('roomUserUpdate', (roomID, updateType, userList) => {
         // 通知用户加入或离开房间
+        if(updateType == 'ADD'){
+          console.log(userList)
+          let context = "用户："+ userList[0].userID
+          document.querySelector("#remote-video-context").innerText += context
+        }else{
+          document.querySelector("#remote-video-context").innerText = "远程视频"
+        }
       });
 
       zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) => {
@@ -170,11 +179,12 @@
           const remoteStream = await zg.startPlayingStream(streamID);
           const remoteView = zg.createRemoteStreamView(remoteStream);
           remoteView.play("remote-video", { enableAutoplayDialog: true });
-
+          
         } else if (updateType == 'DELETE') {
           const streamID = streamList[0].streamID;
           zg.stopPlayingStream(streamID)
         }
+        console.log(streamList.length)
       });
 
       // 添加按钮点击事件
@@ -203,8 +213,10 @@
             console.log("登录成功");
             const localStream = await zg.createZegoStream();
             localStream.playVideo(document.querySelector("#local-video"), { enableAutoplayDialog: true });
-            let streamID = "123";
+            let streamID = ""+Math.floor(Math.random()*10);// 随机生成一个streamID
             zg.startPublishingStream(streamID, localStream)
+
+            document.querySelector("#local-video-context").innerText += "用户："+ userID
           }
         });
       });
